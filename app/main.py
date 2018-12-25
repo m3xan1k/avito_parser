@@ -2,10 +2,22 @@
 
 import requests
 from bs4 import BeautifulSoup
+import lxml
 
-main_url = 'https://avito.ru'
+url = 'https://avito.ru/'
+params = {
+    'city': 'moskva',
+    'query': 'бультерьер'
+}
 
-r = requests.get(main_url)
+full_query = url + params['city'] + '?q=' + params['query']
 
-with open('output.txt', 'w') as f:
-    f.write(r.text)
+r = requests.get(full_query)
+html = r.text
+
+soup = BeautifulSoup(r.text, 'lxml')
+
+print(soup)
+
+# with open('output.txt', 'w') as f:
+#     f.write(r.text)
