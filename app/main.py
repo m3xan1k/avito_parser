@@ -34,19 +34,31 @@ def count_pages():
     pages = re.findall(r'\d+', p)[0]
     return pages
 
+def get_item_description(soup):
+    item_cards = soup.find_all('div', class_='description item_table-description')
+    return item_cards
+
 def read_pages():
     pages = int(count_pages()) + 1
     page_counter = [i for i in range(pages) if i > 0]
     for page in page_counter:
         full_query = construct_query(url, settings, page)
-        print(full_query)
         html = get_html(full_query)
-        if os.path.exists('bully.html'):
-            with open('bully.html', 'a') as f:
-                f.write(html)
-        else:
-            with open('bully.html', 'w') as f:
-                f.write(html)
+        soup = BeautifulSoup(html, 'lxml')
+
+        
+        item_cards = get_item_description(soup)
+        for card in item_cards:
+            headers = card.find_all('span', itemprop="name")
+            for header in headers:
+                print(header.string)
+
+        # if os.path.exists('bully.html'):
+        #     with open('bully.html', 'a') as f:
+        #         f.write(html)
+        # else:
+        #     with open('bully.html', 'w') as f:
+        #         f.write(html)
         time.sleep(3)
 
 
