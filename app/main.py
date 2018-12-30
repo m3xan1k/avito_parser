@@ -42,7 +42,21 @@ def count_pages():
 
 def get_item_description(soup):
     item_cards = soup.find_all('div', class_='description item_table-description')
-    return item_cards
+    for card in item_cards:
+        headers = card.find_all('span', itemprop="name")
+        prices = card.find_all('span', class_="price")
+
+        places = []
+        places_divs = card.find_all('div', class_="data")
+        for each_div in places_divs:
+            p = each_div.select("p:nth-of-type(2)")[0].get_text()
+            places.append(p)
+
+        dates = []
+        dates_divs = card.find_all('div', class_="js-item-date c-2")
+        for each_div in dates_divs:
+            p = each_div.get_text().strip()
+            dates.append(p)
 
 def read_pages():
     pages = int(count_pages()) + 1
@@ -54,22 +68,7 @@ def read_pages():
 
 
         item_cards = get_item_description(soup)
-        for card in item_cards:
-            headers = card.find_all('span', itemprop="name")
-            prices = card.find_all('span', class_="price")
 
-            places = []
-            places_divs = card.find_all('div', class_="data")
-            for each_div in places_divs:
-                p = each_div.select("p:nth-of-type(2)")[0].get_text()
-                places.append(p)
-
-            dates = []
-            dates_divs = card.find_all('div', class_="js-item-date c-2")
-            for each_div in dates_divs:
-                p = each_div.get_text().strip()
-                dates.append(p)
-            print(dates)
 
 
         time.sleep(3)
