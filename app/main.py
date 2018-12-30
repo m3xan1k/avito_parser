@@ -25,6 +25,12 @@ def get_html(full_query):
     html = r.text
     return html
 
+def get_first_page():
+    full_query = construct_query(url, settings, page=1)
+    html = get_html(full_query)
+    return html
+
+
 def count_pages():
     full_query = construct_query(url, settings, page=1)
     html = get_html(full_query)
@@ -46,21 +52,35 @@ def read_pages():
         html = get_html(full_query)
         soup = BeautifulSoup(html, 'lxml')
 
-        
+
         item_cards = get_item_description(soup)
         for card in item_cards:
             headers = card.find_all('span', itemprop="name")
-            for header in headers:
-                print(header.string)
+            prices = card.find_all('span', class_="price")
 
-        # if os.path.exists('bully.html'):
-        #     with open('bully.html', 'a') as f:
-        #         f.write(html)
-        # else:
-        #     with open('bully.html', 'w') as f:
-        #         f.write(html)
+            places = []
+            places_divs = card.find_all('div', class_="data")
+            for each_div in places_divs:
+                p = each_div.select("p:nth-of-type(2)")[0].get_text()
+                places.append(p)
+
+            dates = []
+            dates_divs = card.find_all('div', class_="js-item-date c-2")
+            for each_div in dates_divs:
+                p = each_div.get_text().strip()
+                dates.append(p)
+            print(dates)
+
+
         time.sleep(3)
 
+def write_html(html):
+    if os.path.exists('bully.html'):
+        with open('bully.html', 'a') as f:
+            f.write(html)
+    else:
+        with open('bully.html', 'w') as f:
+            f.write(html)
 
 
 
@@ -78,6 +98,7 @@ def read_pages():
 
 
 def main():
+    # write_html(get_first_page())
     read_pages()
 
 main()
