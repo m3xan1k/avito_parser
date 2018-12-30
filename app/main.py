@@ -58,6 +58,13 @@ def get_item_description(soup):
             p = each_div.get_text().strip()
             dates.append(p)
 
+        links = []
+        link_items = card.find_all('a', class_="item-description-title-link")
+        for item in link_items:
+            link = 'https://avito.ru' + item['href']
+            links.append(link)
+            print(links)
+
 def read_pages():
     pages = int(count_pages()) + 1
     page_counter = [i for i in range(pages) if i > 0]
