@@ -7,30 +7,45 @@ import os.path
 import time
 import re
 
+# main url
 url = 'https://avito.ru/'
+
+# some http params
 user_agent = {'user_agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'}
+
+# settings to complete http query
 settings = {
     'city': 'moskva',
     'query': 'бультерьер'
 }
 
-pages = [i for i in range(6) if i > 0]
 
+# constructing query-string with all setting
 def construct_query(url, settings, page):
     full_query = '{0}{1}?p={2}&q={3}'.format(url, settings['city'], page, settings['query'])
     return full_query
 
+# making an http request
 def get_html(full_query):
     r = requests.get(full_query, params=user_agent)
     html = r.text
     return html
 
-def get_first_page():
+# getting first page soup with count_pages we will know how long pagination is
+def get_first_page_soup():
     full_query = construct_query(url, settings, page=1)
     html = get_html(full_query)
-    return html
+    soup = BeautifulSoup(html, 'lxml')
+    return soup
 
+# getting any page soup
+def get_any_page_soup(page):
+    full_query = construct_query(url, settings, page)
+    html = get_html(full_query)
+    soup = BeautifulSoup(html, 'lxml')
+    return soup
 
+# count how long pagination is
 def count_pages():
     full_query = construct_query(url, settings, page=1)
     html = get_html(full_query)
@@ -40,43 +55,51 @@ def count_pages():
     pages = re.findall(r'\d+', p)[0]
     return pages
 
+# parsing description items that we need
 def get_item_description(soup):
+    # all description can be found in one div
     item_cards = soup.find_all('div', class_='description item_table-description')
+    # make empty array to collect item descriptions
+    all_bullys = []
+    # adding identification to items
+    id = 1
+    # loop through items to collect data
     for card in item_cards:
-        headers = card.find_all('span', itemprop="name")
-        prices = card.find_all('span', class_="price")
+        item = {}
 
-        places = []
-        places_divs = card.find_all('div', class_="data")
-        for each_div in places_divs:
-            p = each_div.select("p:nth-of-type(2)")[0].get_text()
-            places.append(p)
+        header = card.find_all('span', itemprop="name")
+        price = card.find_all('span', class_="price")
+        place = card.find_all('div', class_="data")
+        date = card.find_all('div', class_="js-item-date c-2")
+        link = card.find_all('a', class_="item-description-title-link")
 
-        dates = []
-        dates_divs = card.find_all('div', class_="js-item-date c-2")
-        for each_div in dates_divs:
-            p = each_div.get_text().strip()
-            dates.append(p)
+        item["id"] = id
+        item["header"] = header[0].get_text()
+        item["price"] = price[0].get_text().strip()
+        try:
+            item["place"] = place[0].select("p:nth-of-type(2)")[0].get_text().replace(u'\xa0', u' ')
+        except:
+            item["place"] = "Местонахождение не указано"
+        item["date"] = date[0].get_text().strip()
+        item["link"] = 'https://avito.ru' + link[0]['href']
 
-        links = []
-        link_items = card.find_all('a', class_="item-description-title-link")
-        for item in link_items:
-            link = 'https://avito.ru' + item['href']
-            links.append(link)
-            print(links)
+        all_bullys.append(item)
+        print(item)
+        id += 1
+    return all_bullys
+
+
 
 def read_pages():
+    # counting pages with count_pages()
     pages = int(count_pages()) + 1
+    # generate counter
     page_counter = [i for i in range(pages) if i > 0]
     for page in page_counter:
-        full_query = construct_query(url, settings, page)
-        html = get_html(full_query)
-        soup = BeautifulSoup(html, 'lxml')
-
-
+        # simply getting soup on every page
+        soup = get_any_page_soup(page)
+        # getting list of items with data
         item_cards = get_item_description(soup)
-
-
 
         time.sleep(3)
 
@@ -89,22 +112,9 @@ def write_html(html):
             f.write(html)
 
 
-
-
-
-# r = requests.get(full_query)
-# html = r.text
-#
-# soup = BeautifulSoup(r.text, 'lxml')
-#
-# print(soup)
-
-# with open('output.txt', 'w') as f:
-#     f.write(r.text)
-
-
 def main():
     # write_html(get_first_page())
     read_pages()
+    # get_item_description(get_first_page_soup())
 
 main()
