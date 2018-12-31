@@ -56,13 +56,12 @@ def count_pages():
     return pages
 
 # parsing description items that we need
-def get_item_description(soup):
+def get_item_description(soup, id=1):
     # all description can be found in one div
     item_cards = soup.find_all('div', class_='description item_table-description')
     # make empty array to collect item descriptions
     all_bullys = []
     # adding identification to items
-    id = 1
     # loop through items to collect data
     for card in item_cards:
         item = {}
@@ -86,7 +85,7 @@ def get_item_description(soup):
         all_bullys.append(item)
         print(item)
         id += 1
-    return all_bullys
+    return all_bullys, id
 
 
 
@@ -95,12 +94,13 @@ def read_pages():
     pages = int(count_pages()) + 1
     # generate counter
     page_counter = [i for i in range(pages) if i > 0]
+    id = 1
     for page in page_counter:
         # simply getting soup on every page
         soup = get_any_page_soup(page)
         # getting list of items with data
-        item_cards = get_item_description(soup)
-
+        item_cards, new_id = get_item_description(soup, id)
+        id += new_id
         time.sleep(3)
 
 def write_html(html):
