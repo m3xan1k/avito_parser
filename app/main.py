@@ -6,6 +6,8 @@ import lxml
 import os.path
 import time
 import re
+from operator import itemgetter
+import json
 
 # main url
 url = 'https://avito.ru/'
@@ -55,13 +57,15 @@ def count_pages():
     pages = re.findall(r'\d+', p)[0]
     return pages
 
-# parsing description items that we need
+# parsing тeeded description of items
 def get_item_description(soup, id=1):
+
     # all description can be found in one div
     item_cards = soup.find_all('div', class_='description item_table-description')
+
     # make empty array to collect item descriptions
     all_bullys = []
-    # adding identification to items
+
     # loop through items to collect data
     for card in item_cards:
         item = {}
@@ -83,8 +87,8 @@ def get_item_description(soup, id=1):
         item["link"] = 'https://avito.ru' + link[0]['href']
 
         all_bullys.append(item)
-        print(item)
         id += 1
+        # returning id for fix starting new count in pagination loop
     return all_bullys, id
 
 
@@ -95,13 +99,23 @@ def read_pages():
     # generate counter
     page_counter = [i for i in range(pages) if i > 0]
     id = 1
+    # list of all cards
+    all_cards = []
     for page in page_counter:
         # simply getting soup on every page
         soup = get_any_page_soup(page)
-        # getting list of items with data
+        # getting list of items with data and new_id for start new page with count of 51
         item_cards, new_id = get_item_description(soup, id)
         id += new_id
+        all_cards.append(item_cards)
         time.sleep(3)
+    return all_cards
+
+def sort_by_date(all_cards):
+    sorted_cards = []
+    for card in all_cards:
+        sorted_cards.append(sorted(card, key=lambda k: k['date']))
+    print(sorted_cards)
 
 def write_html(html):
     if os.path.exists('bully.html'):
@@ -114,7 +128,7 @@ def write_html(html):
 
 def main():
     # write_html(get_first_page())
-    read_pages()
+    sort_by_date(read_pages())
     # get_item_description(get_first_page_soup())
 
 main()
