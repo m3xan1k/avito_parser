@@ -83,7 +83,24 @@ def get_item_description(soup, id=1):
             item["place"] = place[0].select("p:nth-of-type(2)")[0].get_text().replace(u'\xa0', u' ')
         except:
             item["place"] = "Местонахождение не указано"
+        # filter on date. some custom logic =)
         item["date"] = date[0].get_text().strip()
+        h = ['час', 'часа', 'часов']
+        d = ['день', 'дней', 'дня']
+        w = ['неделя', 'недели', 'недель', 'неделю']
+        if any(x in item['date'] for x in h):
+            item['date'] = 0
+        elif any(x in item['date'] for x in d):
+            multiplier = 1
+            days = int(item['date'][0]) * multiplier
+            item['date'] = days
+        elif any(x in item['date'] for x in w):
+            multiplier = 7
+            days = int(item['date'][0]) * multiplier
+            item['date'] = days
+        else:
+            item['date'] = 30
+
         item["link"] = 'https://avito.ru' + link[0]['href']
 
         # filter items by price
@@ -92,9 +109,7 @@ def get_item_description(soup, id=1):
             if (10000 <= int(item['price']) <= 25000):
                 all_bullys.append(item)
                 id += 1
-
         # returning id for fix starting new count in pagination loop
-    print(all_bullys)
     return all_bullys, id
 
 
@@ -115,13 +130,22 @@ def read_pages():
         id += new_id
         all_cards.append(item_cards)
         time.sleep(3)
-    return all_cards
+    # getting flat list
+    all_cards_flat = []
+    for page in all_cards:
+        for card in page:
+            all_cards_flat.append(card)
+    return all_cards_flat
 
-def sort_by_date(all_cards):
-    sorted_cards = []
-    for card in all_cards:
-        sorted_cards.append(sorted(card, key=lambda k: k['date']))
-    print(sorted_cards)
+def sort_by_date(all_cards_flat):
+    # create sorted array of dictionaries
+    sorted_cards = sorted(all_cards_flat, key=lambda k: int(k['date']))
+    return sorted_cards
+
+def get_top_ten(sorted_cards):
+    top_ten = sorted_cards[0:10]
+    print(top_ten)
+    return top_ten
 
 def write_html(html):
     if os.path.exists('bully.html'):
@@ -134,8 +158,8 @@ def write_html(html):
 
 def main():
     # write_html(get_first_page())
-    read_pages()
-    # sort_by_date(read_pages())
+    # read_pages()
+    get_top_ten(sort_by_date(read_pages()))
     # get_item_description(get_first_page_soup())
 
 main()
