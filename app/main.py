@@ -78,7 +78,7 @@ def get_item_description(soup, id=1):
 
         item["id"] = id
         item["header"] = header[0].get_text()
-        item["price"] = price[0].get_text().strip()
+        item["price"] = price[0].get_text().replace('₽', '').replace(' ', '').strip()
         try:
             item["place"] = place[0].select("p:nth-of-type(2)")[0].get_text().replace(u'\xa0', u' ')
         except:
@@ -86,9 +86,15 @@ def get_item_description(soup, id=1):
         item["date"] = date[0].get_text().strip()
         item["link"] = 'https://avito.ru' + link[0]['href']
 
-        all_bullys.append(item)
-        id += 1
+        # filter items by price
+        statements = ['Ценанеуказана', 'Бесплатно', 'Договорная']
+        if item['price'] not in statements:
+            if (10000 <= int(item['price']) <= 25000):
+                all_bullys.append(item)
+                id += 1
+
         # returning id for fix starting new count in pagination loop
+    print(all_bullys)
     return all_bullys, id
 
 
@@ -128,7 +134,8 @@ def write_html(html):
 
 def main():
     # write_html(get_first_page())
-    sort_by_date(read_pages())
+    read_pages()
+    # sort_by_date(read_pages())
     # get_item_description(get_first_page_soup())
 
 main()
