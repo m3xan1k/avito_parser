@@ -1,3 +1,5 @@
 venv
 app/output.txt
 app/bully.html
+app/bot_settings.json
+app/__pycache__

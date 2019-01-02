@@ -144,7 +144,6 @@ def sort_by_date(all_cards_flat):
 
 def get_top_ten(sorted_cards):
     top_ten = sorted_cards[0:10]
-    print(top_ten)
     return top_ten
 
 def write_html(html):
@@ -156,10 +155,10 @@ def write_html(html):
             f.write(html)
 
 
-def main():
+#def main():
     # write_html(get_first_page())
+    # get_top_ten(sort_by_date(read_pages()))
     # read_pages()
-    get_top_ten(sort_by_date(read_pages()))
     # get_item_description(get_first_page_soup())
 
-main()
+#main()
