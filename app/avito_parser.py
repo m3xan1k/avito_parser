@@ -88,6 +88,9 @@ def get_item_description(soup, id=1):
         # tuple with photo appends with this strange method either will not work
         item.update((photo, ))
         item["header"] = header[0].get_text()
+        header_filter = ['стафф', 'вязка', 'джек']
+        if any(filter in item['header'].lower() for filter in header_filter):
+            continue
         item["price"] = price[0].get_text().replace('₽', '').replace(' ', '').strip()
         try:
             item["place"] = place[0].select("p:nth-of-type(2)")[0].get_text().replace(u'\xa0', u' ')
@@ -150,28 +153,17 @@ def read_pages():
             all_cards_flat.append(card)
     return all_cards_flat
 
+# sort adverts by date
 def sort_by_date(all_cards_flat):
     # create sorted array of dictionaries
     sorted_cards = sorted(all_cards_flat, key=lambda k: int(k['date']))
     return sorted_cards
 
+# slice top ten adverts
 def get_top_ten(sorted_cards):
     top_ten = sorted_cards[0:10]
     return top_ten
 
-def write_html(html):
-    if os.path.exists('bully.html'):
-        with open('bully.html', 'a') as f:
-            f.write(html)
-    else:
-        with open('bully.html', 'w') as f:
-            f.write(html)
-
-
 #def main():
-    # write_html(get_first_page())
-    # get_top_ten(sort_by_date(read_pages()))
-    # read_pages()
-    # get_item_description(get_first_page_soup())
 
 #main()
