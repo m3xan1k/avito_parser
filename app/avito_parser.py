@@ -63,11 +63,19 @@ def get_item_description(soup, id=1):
     # all description can be found in one div
     item_cards = soup.find_all('div', class_='description item_table-description')
 
+    # photo is in another element
+    photos_divs = soup.find_all('div', class_='item-photo')
+    all_photos = []
+    n = 0
+    for element in photos_divs:
+        photo = element.find('img')['src'].replace('//', '')
+        all_photos.append(('photo', photo))
+
     # make empty array to collect item descriptions
     all_bullys = []
 
     # loop through items to collect data
-    for card in item_cards:
+    for card, photo in zip(item_cards, all_photos):
         item = {}
 
         header = card.find_all('span', itemprop="name")
@@ -77,6 +85,8 @@ def get_item_description(soup, id=1):
         link = card.find_all('a', class_="item-description-title-link")
 
         item["id"] = id
+        # tuple with photo appends with this strange method either will not work
+        item.update((photo, ))
         item["header"] = header[0].get_text()
         item["price"] = price[0].get_text().replace('₽', '').replace(' ', '').strip()
         try:
@@ -103,12 +113,15 @@ def get_item_description(soup, id=1):
 
         item["link"] = 'https://avito.ru' + link[0]['href']
 
+
         # filter items by price
         statements = ['Ценанеуказана', 'Бесплатно', 'Договорная']
         if item['price'] not in statements:
             if (10000 <= int(item['price']) <= 25000):
                 all_bullys.append(item)
                 id += 1
+
+
         # returning id for fix starting new count in pagination loop
     return all_bullys, id
 
